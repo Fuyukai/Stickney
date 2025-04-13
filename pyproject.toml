@@ -1,75 +1,105 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
-[tool.poetry]
+[project]
+authors = [
+    {name = "Lura Skye", email = "fuyukaii@proton.me"},
+]
+license = {text = "LGPL-3.0-or-later"}
+requires-python = ">=3.12"
+dependencies = [
+    "wsproto>=1.2.0",
+    "anyio>=4.1.0",
+    "attrs>=23.1.0",
+]
 name = "stickney"
 version = "0.7.3"
 description = "Asynchronous websockets library"
-authors = ["Lura Skye <l@veriny.tf>"]
 readme = "README.rst"
-packages = [{include = "stickney", from = "src"}]
-license = "LGPL-3.0-or-later"
 
-[tool.poetry.dependencies]
-python = ">=3.12"
-wsproto = ">=1.2.0"
-anyio = "^4.1.0"
-attrs = ">=23.1.0"
+[dependency-groups]
+dev = [
+    "trio>=0.22.2",
+    "pytest>=7.4.3",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.5",
+    "mypy>=1.7.0",
+    "pyright<2.0.0,>=1.1.339",
+]
 
+[tool.pyright]
+pythonVersion = "3.13"
+include = ["src", "tests"]
+typeCheckingMode = "strict"
 
-[tool.poetry.group.dev.dependencies]
-trio = ">=0.22.2"
-pytest = ">=7.4.3"
-pytest-cov = ">=4.1.0"
-ruff = ">=0.1.5"
-mypy = ">=1.7.0"
-pyright = "^1.1.339"
+reportImplicitOverride = "warning"
+reportUnusedVariable = false
+reportIncompatibleVariableOverride = false
+reportPrivateUsage = false
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py313"
 respect-gitignore = true
-# fix = true
-src = ["src/chiru"]
+src = ["src/stickney", "tests/"]
 line-length = 100
-show-source = true
+indent-width = 4
+output-format = "full"
+preview = true
 
+[tool.ruff.lint]
 select = [
-  "RUF", 
-  "F", 
-  "E", 
-  "W",
-  "I", 
-  "UP", 
-  "B",  
-  "YTT", 
-  "ASYNC",
-  "TRIO", 
-  "PYI", 
-  "SIM", 
-  "RET",
-  "PERF",
+    "RUF",
+    "F",
+    "E",
+    "W",
+    "I",
+    "UP",
+    "B",
+    "Q",
+    "YTT",
+    "PYI",
+    "SIM",
+    "RET",
+    "PERF",
+    "PIE",
+    "SIM",
+    "C4",
+    "FA",
+    "ICN",
+    "PYI",
+    "PT",
+    "RET",
+
+    # specific docstring rules
+    "D201",
+    "D204",
+    "D211",
+    "D419", # less ugly docstrings
 ]
 ignore = [
-    "W291",  # SHUT THE FUCK UP WHEN I'M TYPING COMMENTS
-    "W293",
+    "W291", "W293",
+    "UP038",  # Slower than isinstance(thing, tuple)?
+    # wtf is this?
+    "RUF036",
+    "SIM108",
+    "W391",
 ]
 
 [tool.ruff.isort]
 combine-as-imports = true
 
-[tool.mypy]
-python_version = "3.12"
-ignore_missing_imports = true
+[tool.pdm.dev-dependencies]
+dev = [
+    "trio>=0.22.2",
+    "pytest>=7.4.3",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.1.5",
+    "mypy>=1.7.0",
+    "pyright>=1.1.339",
+]
 
-local_partial_types = true
-warn_unused_ignores = true
-warn_unused_configs = true
-warn_redundant_casts = true
-warn_return_any = true
-
-disallow_any_generics = true
-disallow_incomplete_defs = true
-disallow_subclassing_any = true
-disallow_untyped_calls = true
-check_untyped_defs = true
+[tool.pdm.build]
+includes = [
+    "src/stickney",
+]
