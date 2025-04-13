@@ -227,7 +227,7 @@ class WebsocketClient:
                 self._buffer_type = None
                 text_body: str = cast(str, self._last_buffered_message)
                 self._last_buffered_message = ""
-                await self._write_incoming.send(TextualMessage(text_body)) 
+                await self._write_incoming.send(TextualMessage(text_body))
 
         elif isinstance(event, BytesMessage):
             if self._buffer_type == BufferType.BYTES:
@@ -376,7 +376,7 @@ class WebsocketClient:
 @asynccontextmanager
 async def open_ws_connection(
     url: str, *, gracefully_close: bool = True, tls_context: ssl.SSLContext | None = None
-) -> AsyncGenerator[WebsocketClient, None]:
+) -> AsyncGenerator[WebsocketClient]:
     """
     Opens a new websocket connection to the provided URL, and returns a new asynchronous context
     manager holding the websocket.
@@ -409,12 +409,15 @@ async def open_ws_connection(
     if (parsed_url.scheme == "wss" or parsed_url.scheme == "https") and not tls_context:
         tls_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
 
-    async with await anyio.connect_tcp(
-        parsed_url.hostname,
-        port,
-        ssl_context=tls_context,  # type: ignore
-        tls_standard_compatible=False,
-    ) as socket, anyio.create_task_group() as nursery:
+    async with (
+        await anyio.connect_tcp(
+            parsed_url.hostname,
+            port,
+            ssl_context=tls_context,  # type: ignore
+            tls_standard_compatible=False,
+        ) as socket,
+        anyio.create_task_group() as nursery,
+    ):
         conn = WebsocketClient(
             socket,
             graceful_closes=gracefully_close,

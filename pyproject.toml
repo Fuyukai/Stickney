@@ -86,7 +86,7 @@ ignore = [
     "W391",
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 combine-as-imports = true
 
 [tool.pdm.dev-dependencies]

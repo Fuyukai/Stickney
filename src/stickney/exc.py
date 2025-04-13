@@ -3,9 +3,9 @@ from __future__ import annotations
 import anyio
 
 __all__ = (
-    "WebsocketStateMachineError",
-    "WebsocketClosedError",
     "ConnectionRejectedError",
+    "WebsocketClosedError",
+    "WebsocketStateMachineError",
 )
 
 

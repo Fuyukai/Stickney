@@ -3,14 +3,14 @@ from __future__ import annotations
 import attr
 
 __all__ = (
-    "WsMessage",
-    "ConnectionOpenMessage",
-    "RejectMessage",
-    "CloseMessage",
     "BinaryMessage",
-    "TextualMessage",
+    "CloseMessage",
+    "ConnectionOpenMessage",
     "PingMessage",
     "PongMessage",
+    "RejectMessage",
+    "TextualMessage",
+    "WsMessage",
 )
 
 
@@ -19,16 +19,12 @@ class WsMessage:
     Marker root class for inbound websocket frames.
     """
 
-    pass
-
 
 @attr.s(frozen=True, slots=True)
 class ConnectionOpenMessage(WsMessage):
     """
     Returned when the websocket server accepts the Upgrade request.
     """
-
-    pass
 
 
 @attr.s(frozen=True, slots=True)
