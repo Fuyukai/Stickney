@@ -5,7 +5,6 @@ import ssl
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from enum import Enum
-from typing import cast
 from urllib.parse import ParseResult, urlparse
 
 import anyio
@@ -14,11 +13,10 @@ from anyio import (
     ClosedResourceError,
     EndOfStream,
     Event as AioEvent,
+    ResourceGuard,
     create_memory_object_stream,
 )
-from anyio._core._synchronization import ResourceGuard
-from anyio.abc import SocketStream
-from anyio.streams.tls import TLSStream
+from anyio.abc import ByteStream
 from wsproto import ConnectionType, WSConnection
 from wsproto.events import (
     AcceptConnection,
@@ -74,7 +72,7 @@ class WebsocketClient:
 
     def __init__(
         self,
-        sock: SocketStream | TLSStream,
+        sock: ByteStream,
         *,
         graceful_closes: bool = True,
         cancel_scope: CancelScope,
@@ -110,6 +108,7 @@ class WebsocketClient:
         # but rejected error code is only used for rejected messages.
         self._buffer_type: BufferType | None = None
         self._rejected_error_code: int = 0
+
         self._last_buffered_message: str | bytes = ""
 
         self._close_code: int = 0
@@ -213,7 +212,8 @@ class WebsocketClient:
 
         elif isinstance(event, TextMessage):
             if self._buffer_type == BufferType.TEXTUAL:
-                self._last_buffered_message += event.data  # type: ignore
+                assert isinstance(self._last_buffered_message, str)
+                self._last_buffered_message += event.data
             elif self._buffer_type is None:
                 self._buffer_type = BufferType.TEXTUAL
                 self._last_buffered_message = event.data
@@ -225,13 +225,14 @@ class WebsocketClient:
 
             if event.message_finished:
                 self._buffer_type = None
-                text_body: str = cast(str, self._last_buffered_message)
+                text_body: str = self._last_buffered_message
                 self._last_buffered_message = ""
                 await self._write_incoming.send(TextualMessage(text_body))
 
         elif isinstance(event, BytesMessage):
             if self._buffer_type == BufferType.BYTES:
-                self._last_buffered_message += event.data  # type: ignore
+                assert isinstance(self._last_buffered_message, bytes)
+                self._last_buffered_message += event.data
             elif self._buffer_type is None:
                 self._buffer_type = BufferType.BYTES
                 self._last_buffered_message = event.data
@@ -243,7 +244,7 @@ class WebsocketClient:
 
             if event.message_finished:
                 self._buffer_type = None
-                bytes_body: bytes = cast(bytes, self._last_buffered_message)
+                bytes_body: bytes = self._last_buffered_message
                 self._last_buffered_message = b""
                 await self._write_incoming.send(BinaryMessage(bytes_body))
 
@@ -365,10 +366,8 @@ class WebsocketClient:
         event: TextMessage | BytesMessage
         if isinstance(data, str):
             event = TextMessage(data, message_finished=message_finished)
-        elif isinstance(data, bytes):
-            event = BytesMessage(data, message_finished=message_finished)
         else:
-            raise TypeError(f"Expected data to be either str or bytes, not ``{type(data)}")
+            event = BytesMessage(data, message_finished=message_finished)
 
         await self._send_message(event)
 
