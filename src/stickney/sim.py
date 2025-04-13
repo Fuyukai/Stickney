@@ -1,6 +1,7 @@
 import math
 import socket
 from collections import deque
+from typing import override
 
 from anyio import CancelScope
 from anyio.abc import SocketStream
@@ -14,6 +15,7 @@ class FakeSocket(SocketStream):
     async def receive(self, max_bytes: int = 65536) -> bytes:  # type: ignore
         pass
 
+    @override
     async def send(self, item: bytes) -> None:
         pass
 
@@ -21,9 +23,11 @@ class FakeSocket(SocketStream):
     def _raw_socket(self) -> socket.socket:  # type: ignore
         pass
 
+    @override
     async def send_eof(self) -> None:
         pass
 
+    @override
     async def aclose(self) -> None:
         pass
 
@@ -39,6 +43,7 @@ class SimulatedWebsocket(WebsocketClient):
         #: A deque of outbound messages that have been "sent" by this websocket.
         self.outbound_messages: deque[Event] = deque()
 
+    @override
     async def _send_message(self, event: Event) -> None:
         if self._is_definitely_closed:
             raise WebsocketClosedError(self._close_code, self._close_reason)
