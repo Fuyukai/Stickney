@@ -14,6 +14,7 @@ from anyio import (
     EndOfStream,
     Event as AioEvent,
     ResourceGuard,
+    aclose_forcefully,
     create_memory_object_stream,
 )
 from anyio.abc import ByteStream
@@ -341,7 +342,11 @@ class WebsocketClient:
         self._client_initialised_close = True
         event = CloseConnection(code=code, reason=reason)
 
-        await self._sock.send(self._proto.send(event))
+        try:  # noqa: SIM105
+            await self._sock.send(self._proto.send(event))
+        except ClosedResourceError:
+            # whatever
+            pass
         return None
 
     async def send_ping(self, data: bytes = b"Have you heard of the high elves?") -> None:
@@ -428,7 +433,8 @@ async def open_ws_connection(
         try:
             yield conn
         finally:
-            await conn.close(code=1000)
-            await conn._finish()
-            # I fucking hate asyncio!
-            nursery.cancel_scope.cancel()
+            with anyio.move_on_after(5, shield=True):
+                await conn.close(code=1000)
+                await conn._finish()
+
+            await aclose_forcefully(socket)

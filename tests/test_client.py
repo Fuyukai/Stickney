@@ -13,7 +13,9 @@ async def test_normal_client_connection():
     Tests a normal echo connection with a real server.
     """
 
-    async with open_ws_connection("ws://127.0.0.1:1337") as conn:
+    async with open_ws_connection("wss://echo.websocket.org/") as conn:
+        await conn.receive_single_message()
+
         await conn.send_message("echo!")
         next_message = await conn.receive_single_message()
 
@@ -40,7 +42,8 @@ async def test_act_sanely_during_socket_close():
     Ensures that the client acts mostly sane during a socket close.
     """
 
-    async with open_ws_connection("ws://127.0.0.1:1337") as conn:
+    async with open_ws_connection("wss://echo.websocket.org/") as conn:
+        await conn.receive_single_message()
         await conn._sock.aclose()
 
         with pytest.raises(WebsocketClosedError):
@@ -101,7 +104,9 @@ async def test_server_responds_to_ping():
     Ensures that Ping/Pong handling is done correctly.
     """
 
-    async with open_ws_connection("ws://127.0.0.1:1337") as conn:
+    async with open_ws_connection("wss://echo.websocket.org/") as conn:
+        await conn.receive_single_message()
+    
         await conn.send_ping(b"hi nicky!")
         next_message = await conn.receive_single_message()
 
