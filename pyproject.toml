@@ -14,7 +14,7 @@ dependencies = [
     "attrs>=23.1.0",
 ]
 name = "stickney"
-version = "0.7.3"
+dynamic = ["version"]
 description = "Asynchronous websockets library"
 readme = "README.rst"
 
@@ -27,6 +27,9 @@ dev = [
     "mypy>=1.7.0",
     "pyright<2.0.0,>=1.1.339",
 ]
+
+[tool.pdm.version]
+source = "scm"
 
 [tool.pyright]
 pythonVersion = "3.13"
